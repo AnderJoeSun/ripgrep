@@ -62,10 +62,10 @@ pub(crate) fn parse() -> ParseResult<HiArgs> {
 /// This will also set one-time global state flags, such as the log level and
 /// whether messages should be printed.
 fn parse_low() -> ParseResult<LowArgs> {
-    if let Err(err) = crate::logger::Logger::init() {
-        let err = anyhow::anyhow!("failed to initialize logger: {err}");
-        return ParseResult::Err(err);
-    }
+    // if let Err(err) = crate::logger::Logger::init() {
+    //     let err = anyhow::anyhow!("failed to initialize logger: {err}");
+    //     return ParseResult::Err(err);
+    // }
 
     let parser = Parser::new();
     let mut low = LowArgs::default();
