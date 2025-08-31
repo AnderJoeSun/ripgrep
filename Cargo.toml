@@ -49,6 +49,7 @@ members = [
 ]
 
 [dependencies]
+gag = "1.0"
 anyhow = "1.0.75"
 bstr = "1.7.0"
 grep = { version = "0.3.2", path = "crates/grep" }

@@ -2,6 +2,9 @@
 The main entry point into ripgrep.
 */
 
+use gag::BufferRedirect;
+use std::io::{self, Read};
+
 use std::{io::Write, process::ExitCode};
 
 use ignore::WalkState;
@@ -41,7 +44,16 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// Then, as it was, then again it will be.
 fn main() -> ExitCode {
-    match run(flags::parse()) {
+    // Redirect stdout to a buffer
+    let redirect = match BufferRedirect::stdout() {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Error: failed to redirect stdout: {}", e);
+            return ExitCode::from(2);
+        }
+    };
+
+    let exitCode: ExitCode = match run(flags::parse()) {
         Ok(code) => code,
         Err(err) => {
             // Look for a broken pipe error. In this case, we generally want
@@ -62,7 +74,28 @@ fn main() -> ExitCode {
             eprintln_locked!("{:#}", err);
             ExitCode::from(2)
         }
+    };
+
+    // Restore stdout and get the captured content
+    let mut captured_output = String::new();
+    match redirect.into_inner().read_to_string(&mut captured_output) {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("Error: failed to read captured output: {}", e);
+            return ExitCode::from(2);
+        }
     }
+
+    // Process the captured output: add "aaa" at the end of each line
+    let lines: Vec<&str> = captured_output.lines().collect();
+
+    // Print the modified content
+    for line in lines {
+        println!("{}", line);
+    }
+
+    exitCode
+
 }
 
 /// The main entry point for ripgrep.
